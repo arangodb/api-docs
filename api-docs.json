@@ -2,7 +2,7 @@
  "info": {
   "description": "ArangoDB REST API Interface",
   "title": "ArangoDB",
-  "version": "3.10.9"
+  "version": "3.11.1"
  },
  "openapi": "3.1.0",
  "paths": {
@@ -5995,6 +5995,431 @@
     ]
    }
   },
+  "/_api/control_pregel/history": {
+   "delete": {
+    "description": "Removes the persisted execution statistics of all past Pregel jobs.\n",
+    "operationId": "deleteAllPregelJobStatistics",
+    "responses": {
+     "200": {
+      "description": "is returned if all persisted execution statistics have been successfully deleted.\n"
+     }
+    },
+    "summary": "Remove the execution statistics of all past Pregel jobs",
+    "tags": [
+     "Pregel"
+    ]
+   },
+   "get": {
+    "description": "Returns a list of currently running and finished Pregel jobs without retrieving\ntheir results.\n\nThe execution statistics are persisted to a system collection and kept until you\nremove them, whereas the `/_api/control_pregel` endpoint only keeps the\ninformation temporarily in memory.\n",
+    "operationId": "listPregelJobsStatisics",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "description": "A list of objects describing the Pregel jobs.\n",
+         "items": {
+          "properties": {
+           "algorithm": {
+            "description": "The algorithm used by the job.\n",
+            "type": "string"
+           },
+           "computationTime": {
+            "description": "The algorithm execution time. Is shown when the computation started.\n",
+            "type": "number"
+           },
+           "created": {
+            "description": "The date and time when the job was created.\n",
+            "type": "string"
+           },
+           "detail": {
+            "description": "The Pregel run details.\n",
+            "properties": {
+             "aggregatedStatus": {
+              "description": "The aggregated details of the full Pregel run. The values are totals of all the\nDB-Server.\n",
+              "properties": {
+               "allGssStatus": {
+                "description": "Information about the global supersteps.\n",
+                "properties": {
+                 "items": {
+                  "description": "A list of objects with details for each global superstep.\n",
+                  "items": {
+                   "properties": {
+                    "memoryBytesUsedForMessages": {
+                     "description": "The number of bytes used in memory for the messages in this step.\n",
+                     "type": "integer"
+                    },
+                    "messagesReceived": {
+                     "description": "The number of messages received in this step.\n",
+                     "type": "integer"
+                    },
+                    "messagesSent": {
+                     "description": "The number of messages sent in this step.\n",
+                     "type": "integer"
+                    },
+                    "verticesProcessed": {
+                     "description": "The number of vertices that have been processed in this step.\n",
+                     "type": "integer"
+                    }
+                   },
+                   "type": "object"
+                  },
+                  "type": "array"
+                 }
+                },
+                "type": "object"
+               },
+               "graphStoreStatus": {
+                "description": "The status of the in memory graph.\n",
+                "properties": {
+                 "edgesLoaded": {
+                  "description": "The number of edges that are loaded from the database into memory.\n",
+                  "type": "integer"
+                 },
+                 "memoryBytesUsed": {
+                  "description": "The number of bytes used in-memory for the loaded graph.\n",
+                  "type": "integer"
+                 },
+                 "verticesLoaded": {
+                  "description": "The number of vertices that are loaded from the database into memory.\n",
+                  "type": "integer"
+                 },
+                 "verticesStored": {
+                  "description": "The number of vertices that are written back to the database after the Pregel\ncomputation finished. It is only set if the `store` parameter is set to `true`.\n",
+                  "type": "integer"
+                 }
+                },
+                "type": "object"
+               },
+               "timeStamp": {
+                "description": "The time at which the status was measured.\n",
+                "type": "string"
+               }
+              },
+              "required": [
+               "timeStamp"
+              ],
+              "type": "object"
+             },
+             "workerStatus": {
+              "description": "The details of the Pregel for every DB-Server. Each object key is a DB-Server ID,\n\nand each value is a nested object similar to the `aggregatedStatus` attribute.\n\nIn a single server deployment, there is only a single entry with an empty string as key.\n",
+              "type": "object"
+             }
+            },
+            "required": [
+             "aggregatedStatus",
+             "workerStatus"
+            ],
+            "type": "object"
+           },
+           "edgeCount": {
+            "description": "The total number of edges processed.\n",
+            "type": "integer"
+           },
+           "expires": {
+            "description": "The date and time when the job results expire. The expiration date is only\nmeaningful for jobs that were completed, canceled or resulted in an error. Such jobs\nare cleaned up by the garbage collection when they reach their expiration date/time.\n",
+            "type": "string"
+           },
+           "gss": {
+            "description": "The number of global supersteps executed.\n",
+            "type": "integer"
+           },
+           "gssTimes": {
+            "description": "Computation time of each global super step. Is shown when the computation started.\n",
+            "items": {
+             "type": "number"
+            },
+            "type": "array"
+           },
+           "id": {
+            "description": "The ID of the Pregel job, as a string.\n",
+            "type": "string"
+           },
+           "reports": {
+            "description": "This attribute is used by Programmable Pregel Algorithms (`ppa`, experimental).\nThe value is only populated once the algorithm has finished.\n",
+            "items": {
+             "type": "object"
+            },
+            "type": "array"
+           },
+           "startupTime": {
+            "description": "The startup runtime of the execution.\nThe startup time includes the data loading time and can be substantial.\n",
+            "type": "number"
+           },
+           "state": {
+            "description": "The state of the execution. The following values can be returned:\n- `\"none\"`: The Pregel run did not yet start.\n- `\"loading\"`: The graph is loaded from the database into memory before the execution of the algorithm.\n- `\"running\"`: The algorithm is executing normally.\n- `\"storing\"`: The algorithm finished, but the results are still being written\n  back into the collections. Occurs only if the store parameter is set to true.\n- `\"done\"`: The execution is done. In version 3.7.1 and later, this means that\n  storing is also done. In earlier versions, the results may not be written back\n  into the collections yet. This event is announced in the server log (requires\n  at least info log level for the `pregel` log topic).\n- `\"canceled\"`: The execution was permanently canceled, either by the user or by\n  an error.\n- `\"fatal error\"`: The execution has failed and cannot recover.\n- `\"in error\"`: The execution is in an error state. This can be\n  caused by DB-Servers being not reachable or being non responsive. The execution\n  might recover later, or switch to `\"canceled\"` if it was not able to recover\n  successfully.\n- `\"recovering\"` (currently unused): The execution is actively recovering and\n  switches back to `running` if the recovery is successful.\n",
+            "type": "string"
+           },
+           "storageTime": {
+            "description": "The time for storing the results if the job includes results storage.\nIs shown when the storing started.\n",
+            "type": "number"
+           },
+           "totalRuntime": {
+            "description": "The total runtime of the execution up to now (if the execution is still ongoing).\n",
+            "type": "number"
+           },
+           "ttl": {
+            "description": "The TTL (time to live) value for the job results, specified in seconds.\nThe TTL is used to calculate the expiration date for the job's results.\n",
+            "type": "number"
+           },
+           "vertexCount": {
+            "description": "The total number of vertices processed.\n",
+            "type": "integer"
+           }
+          },
+          "required": [
+           "id",
+           "algorithm",
+           "created",
+           "ttl",
+           "state",
+           "gss",
+           "totalRuntime",
+           "startupTime",
+           "computationTime",
+           "reports",
+           "detail"
+          ],
+          "type": "object"
+         },
+         "type": "array"
+        }
+       }
+      },
+      "description": "is returned if the list of jobs can be retrieved successfully.\n"
+     }
+    },
+    "summary": "Get the execution statistics of all Pregel jobs",
+    "tags": [
+     "Pregel"
+    ]
+   }
+  },
+  "/_api/control_pregel/history/{id}": {
+   "delete": {
+    "description": "Removes the persisted execution statistics of a finished Pregel job.\n",
+    "operationId": "deletePregelJobStatistics",
+    "parameters": [
+     {
+      "description": "The Pregel job identifier.\n",
+      "in": "path",
+      "name": "id",
+      "required": true,
+      "schema": {
+       "type": "number"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "is returned if the Pregel job ID is valid.\n"
+     },
+     "404": {
+      "description": "is returned if no Pregel job with the specified ID is found or if the ID\nis invalid.\n"
+     }
+    },
+    "summary": "Remove the execution statistics of a past Pregel job",
+    "tags": [
+     "Pregel"
+    ]
+   },
+   "get": {
+    "description": "Returns the current state of the execution, the current global superstep, the\nruntime, the global aggregator values, as well as the number of sent and\nreceived messages.\n\nThe execution statistics are persisted to a system collection and kept until you\nremove them, whereas the `/_api/control_pregel/{id}` endpoint only keeps the\ninformation temporarily in memory.\n",
+    "operationId": "getPregelJobStatistics",
+    "parameters": [
+     {
+      "description": "Pregel job identifier.\n",
+      "in": "path",
+      "name": "id",
+      "required": true,
+      "schema": {
+       "type": "number"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "description": "The information about the Pregel job.\n",
+         "properties": {
+          "algorithm": {
+           "description": "The algorithm used by the job.\n",
+           "type": "string"
+          },
+          "computationTime": {
+           "description": "The algorithm execution time. Is shown when the computation started.\n",
+           "type": "number"
+          },
+          "created": {
+           "description": "The date and time when the job was created.\n",
+           "type": "string"
+          },
+          "detail": {
+           "description": "The Pregel run details.\n",
+           "properties": {
+            "aggregatedStatus": {
+             "description": "The aggregated details of the full Pregel run. The values are totals of all the\nDB-Server.\n",
+             "properties": {
+              "allGssStatus": {
+               "description": "Information about the global supersteps.\n",
+               "properties": {
+                "items": {
+                 "description": "A list of objects with details for each global superstep.\n",
+                 "items": {
+                  "properties": {
+                   "memoryBytesUsedForMessages": {
+                    "description": "The number of bytes used in memory for the messages in this step.\n",
+                    "type": "integer"
+                   },
+                   "messagesReceived": {
+                    "description": "The number of messages received in this step.\n",
+                    "type": "integer"
+                   },
+                   "messagesSent": {
+                    "description": "The number of messages sent in this step.\n",
+                    "type": "integer"
+                   },
+                   "verticesProcessed": {
+                    "description": "The number of vertices that have been processed in this step.\n",
+                    "type": "integer"
+                   }
+                  },
+                  "type": "object"
+                 },
+                 "type": "array"
+                }
+               },
+               "type": "object"
+              },
+              "graphStoreStatus": {
+               "description": "The status of the in memory graph.\n",
+               "properties": {
+                "edgesLoaded": {
+                 "description": "The number of edges that are loaded from the database into memory.\n",
+                 "type": "integer"
+                },
+                "memoryBytesUsed": {
+                 "description": "The number of bytes used in-memory for the loaded graph.\n",
+                 "type": "integer"
+                },
+                "verticesLoaded": {
+                 "description": "The number of vertices that are loaded from the database into memory.\n",
+                 "type": "integer"
+                },
+                "verticesStored": {
+                 "description": "The number of vertices that are written back to the database after the Pregel\ncomputation finished. It is only set if the `store` parameter is set to `true`.\n",
+                 "type": "integer"
+                }
+               },
+               "type": "object"
+              },
+              "timeStamp": {
+               "description": "The time at which the status was measured.\n",
+               "type": "string"
+              }
+             },
+             "required": [
+              "timeStamp"
+             ],
+             "type": "object"
+            },
+            "workerStatus": {
+             "description": "The details of the Pregel for every DB-Server. Each object key is a DB-Server ID,\n\nand each value is a nested object similar to the `aggregatedStatus` attribute.\n\nIn a single server deployment, there is only a single entry with an empty string as key.\n",
+             "type": "object"
+            }
+           },
+           "required": [
+            "aggregatedStatus",
+            "workerStatus"
+           ],
+           "type": "object"
+          },
+          "edgeCount": {
+           "description": "The total number of edges processed.\n",
+           "type": "integer"
+          },
+          "expires": {
+           "description": "The date and time when the job results expire. The expiration date is only\nmeaningful for jobs that were completed, canceled or resulted in an error. Such jobs\nare cleaned up by the garbage collection when they reach their expiration date/time.\n",
+           "type": "string"
+          },
+          "gss": {
+           "description": "The number of global supersteps executed.\n",
+           "type": "integer"
+          },
+          "gssTimes": {
+           "description": "Computation time of each global super step. Is shown when the computation started.\n",
+           "items": {
+            "type": "number"
+           },
+           "type": "array"
+          },
+          "id": {
+           "description": "The ID of the Pregel job, as a string.\n",
+           "type": "string"
+          },
+          "reports": {
+           "description": "This attribute is used by Programmable Pregel Algorithms (`ppa`, experimental).\nThe value is only populated once the algorithm has finished.\n",
+           "items": {
+            "type": "object"
+           },
+           "type": "array"
+          },
+          "startupTime": {
+           "description": "The startup runtime of the execution.\nThe startup time includes the data loading time and can be substantial.\n",
+           "type": "number"
+          },
+          "state": {
+           "description": "The state of the execution. The following values can be returned:\n- `\"none\"`: The Pregel run did not yet start.\n- `\"loading\"`: The graph is loaded from the database into memory before the execution of the algorithm.\n- `\"running\"`: The algorithm is executing normally.\n- `\"storing\"`: The algorithm finished, but the results are still being written\n  back into the collections. Occurs only if the store parameter is set to true.\n- `\"done\"`: The execution is done. In version 3.7.1 and later, this means that\n  storing is also done. In earlier versions, the results may not be written back\n  into the collections yet. This event is announced in the server log (requires\n  at least info log level for the `pregel` log topic).\n- `\"canceled\"`: The execution was permanently canceled, either by the user or by\n  an error.\n- `\"fatal error\"`: The execution has failed and cannot recover.\n- `\"in error\"`: The execution is in an error state. This can be\n  caused by DB-Servers being not reachable or being non responsive. The execution\n  might recover later, or switch to `\"canceled\"` if it was not able to recover\n  successfully.\n- `\"recovering\"` (currently unused): The execution is actively recovering and\n  switches back to `running` if the recovery is successful.\n",
+           "type": "string"
+          },
+          "storageTime": {
+           "description": "The time for storing the results if the job includes results storage.\nIs shown when the storing started.\n",
+           "type": "number"
+          },
+          "totalRuntime": {
+           "description": "The total runtime of the execution up to now (if the execution is still ongoing).\n",
+           "type": "number"
+          },
+          "ttl": {
+           "description": "The TTL (time to live) value for the job results, specified in seconds.\nThe TTL is used to calculate the expiration date for the job's results.\n",
+           "type": "number"
+          },
+          "vertexCount": {
+           "description": "The total number of vertices processed.\n",
+           "type": "integer"
+          }
+         },
+         "required": [
+          "id",
+          "algorithm",
+          "created",
+          "ttl",
+          "state",
+          "gss",
+          "totalRuntime",
+          "startupTime",
+          "computationTime",
+          "reports",
+          "detail"
+         ],
+         "type": "object"
+        }
+       }
+      },
+      "description": "is returned if the Pregel job ID is valid and the execution statistics are\nreturned along with the response.\n"
+     },
+     "404": {
+      "description": "is returned if no Pregel job with the specified ID is found or if the ID\nis invalid.\n"
+     }
+    },
+    "summary": "Get the execution statistics of a Pregel job",
+    "tags": [
+     "Pregel"
+    ]
+   }
+  },
   "/_api/control_pregel/{id}": {
    "delete": {
     "description": "Cancel an execution which is still running, and discard any intermediate\nresults. This immediately frees all memory taken up by the execution, and\nmakes you lose all intermediary data.\n\nYou might get inconsistent results if you requested to store the results and\nthen cancel an execution when it is already in its `\"storing\"` state (or\n`\"done\"` state in versions prior to 3.7.1). The data is written multi-threaded\ninto all collection shards at once. This means there are multiple transactions\nsimultaneously. A transaction might already be committed when you cancel the\nexecution job. Therefore, you might see some updated documents, while other\ndocuments have no or stale results from a previous execution.\n",
@@ -7192,6 +7617,470 @@
      }
     },
     "summary": "Read the next batch from a cursor (deprecated)",
+    "tags": [
+     "Queries"
+    ]
+   }
+  },
+  "/_api/cursor/{cursor-identifier}/{batch-identifier}": {
+   "post": {
+    "description": "You can use this endpoint to retry fetching the latest batch from a cursor.\nThe endpoint requires the `allowRetry` query option to be enabled for the cursor.\n\nCalling this endpoint with the last returned batch identifier returns the\nquery results for that same batch again. This does not advance the cursor.\nClient applications can use this to re-transfer a batch once more in case of\ntransfer errors.\n\nYou can also call this endpoint with the next batch identifier, i.e. the value\nreturned in the `nextBatchId` attribute of a previous request. This advances the\ncursor and returns the results of the next batch.\n\nFrom v3.11.1 onward, you may use this endpoint even if the `allowRetry`\nattribute is `false` to fetch the next batch, but you cannot request a batch\nagain unless you set it to `true`.\n\nNote that it is only supported to query the last returned batch identifier or\nthe directly following batch identifier. The latter is only supported if there\nare more results in the cursor (i.e. `hasMore` is `true` in the latest batch).\n\nNote that when the last batch has been consumed successfully by a client\napplication, it should explicitly delete the cursor to inform the server that it\nsuccessfully received and processed the batch so that the server can free up\nresources.\n",
+    "operationId": "getPreviousAqlQueryCursorBatch",
+    "parameters": [
+     {
+      "description": "The ID of the cursor.\n",
+      "in": "path",
+      "name": "cursor-identifier",
+      "required": true,
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "description": "The ID of the batch. The first batch has an ID of `1` and the value is\nincremented by 1 with every batch. You can only request the latest batch again\n(or the next batch). Earlier batches are not kept on the server-side.\n",
+      "in": "path",
+      "name": "batch-identifier",
+      "required": true,
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "properties": {
+          "cached": {
+           "description": "A boolean flag indicating whether the query result was served\nfrom the query cache or not. If the query result is served from the query\ncache, the `extra` return attribute will not contain any `stats` sub-attribute\nand no `profile` sub-attribute.\n",
+           "type": "boolean"
+          },
+          "code": {
+           "description": "The HTTP status code.\n",
+           "type": "integer"
+          },
+          "count": {
+           "description": "The total number of result documents available (only\navailable if the query was executed with the `count` attribute set).\n",
+           "type": "integer"
+          },
+          "error": {
+           "description": "A flag to indicate that an error occurred (`false` in this case).\n",
+           "type": "boolean"
+          },
+          "extra": {
+           "description": "An optional JSON object with extra information about the query result.\n\nOnly delivered as part of the first batch, or the last batch in case of a cursor\nwith the `stream` option enabled.\n",
+           "properties": {
+            "plan": {
+             "description": "The execution plan.\n",
+             "properties": {
+              "collections": {
+               "description": "A list of the collections involved in the query. The list only includes the\ncollections that can statically be determined at query compile time.\n",
+               "items": {
+                "properties": {
+                 "name": {
+                  "description": "The collection name.\n",
+                  "type": "string"
+                 },
+                 "type": {
+                  "description": "How the collection is used. Can be `\"read\"`, `\"write\"`, or `\"exclusive\"`.\n",
+                  "type": "string"
+                 }
+                },
+                "required": [
+                 "name",
+                 "type",
+                 "name",
+                 "type",
+                 "name",
+                 "type"
+                ],
+                "type": "object"
+               },
+               "type": "array"
+              },
+              "estimatedCost": {
+               "description": "The estimated cost of the query.\n",
+               "type": "integer"
+              },
+              "estimatedNrItems": {
+               "description": "The estimated number of results.\n",
+               "type": "integer"
+              },
+              "isModificationQuery": {
+               "description": "Whether the query contains write operations.\n",
+               "type": "boolean"
+              },
+              "nodes": {
+               "description": "A nested list of the execution plan nodes.\n",
+               "items": {
+                "type": "object"
+               },
+               "type": "array"
+              },
+              "rules": {
+               "description": "A list with the names of the applied optimizer rules.\n",
+               "items": {
+                "type": "string"
+               },
+               "type": "array"
+              },
+              "variables": {
+               "description": "All of the query variables, including user-created and internal ones.\n",
+               "items": {
+                "type": "object"
+               },
+               "type": "array"
+              }
+             },
+             "required": [
+              "nodes",
+              "rules",
+              "collections",
+              "variables",
+              "estimatedCost",
+              "estimatedNrItems",
+              "isModificationQuery",
+              "nodes",
+              "rules",
+              "collections",
+              "variables",
+              "estimatedCost",
+              "estimatedNrItems",
+              "isModificationQuery",
+              "nodes",
+              "rules",
+              "collections",
+              "variables",
+              "estimatedCost",
+              "estimatedNrItems",
+              "isModificationQuery"
+             ],
+             "type": "object"
+            },
+            "profile": {
+             "description": "The duration of the different query execution phases in seconds.\n",
+             "properties": {
+              "executing": {
+               "description": "",
+               "type": "number"
+              },
+              "finalizing": {
+               "description": "",
+               "type": "number"
+              },
+              "initializing": {
+               "description": "",
+               "type": "number"
+              },
+              "instantiating executors": {
+               "description": "",
+               "type": "number"
+              },
+              "instantiating plan": {
+               "description": "",
+               "type": "number"
+              },
+              "loading collections": {
+               "description": "",
+               "type": "number"
+              },
+              "optimizing ast": {
+               "description": "",
+               "type": "number"
+              },
+              "optimizing plan": {
+               "description": "",
+               "type": "number"
+              },
+              "parsing": {
+               "description": "",
+               "type": "number"
+              }
+             },
+             "required": [
+              "initializing",
+              "parsing",
+              "optimizing ast",
+              "loading collections",
+              "instantiating plan",
+              "optimizing plan",
+              "instantiating executors",
+              "executing",
+              "finalizing",
+              "initializing",
+              "parsing",
+              "optimizing ast",
+              "loading collections",
+              "instantiating plan",
+              "optimizing plan",
+              "instantiating executors",
+              "executing",
+              "finalizing",
+              "initializing",
+              "parsing",
+              "optimizing ast",
+              "loading collections",
+              "instantiating plan",
+              "optimizing plan",
+              "instantiating executors",
+              "executing",
+              "finalizing"
+             ],
+             "type": "object"
+            },
+            "stats": {
+             "description": "An object with query statistics.\n",
+             "properties": {
+              "cacheHits": {
+               "description": "The total number of index entries read from in-memory caches for indexes\nof type edge or persistent. This value is only non-zero when reading from indexes\nthat have an in-memory cache enabled, and when the query allows using the in-memory\ncache (i.e. using equality lookups on all index attributes).\n",
+               "type": "integer"
+              },
+              "cacheMisses": {
+               "description": "The total number of cache read attempts for index entries that could not\nbe served from in-memory caches for indexes of type edge or persistent. This value\nis only non-zero when reading from indexes that have an in-memory cache enabled, the\nquery allows using the in-memory cache (i.e. using equality lookups on all index attributes)\nand the looked up values are not present in the cache.\n",
+               "type": "integer"
+              },
+              "cursorsCreated": {
+               "description": "The total number of cursor objects created during query execution. Cursor\nobjects are created for index lookups.\n",
+               "type": "integer"
+              },
+              "cursorsRearmed": {
+               "description": "The total number of times an existing cursor object was repurposed.\nRepurposing an existing cursor object is normally more efficient compared to destroying an\nexisting cursor object and creating a new one from scratch.\n",
+               "type": "integer"
+              },
+              "executionTime": {
+               "description": "The query execution time (wall-clock time) in seconds.\n",
+               "type": "number"
+              },
+              "filtered": {
+               "description": "The total number of documents removed after executing a filter condition\nin a `FilterNode` or another node that post-filters data. Note that nodes of the\n`IndexNode` type can also filter documents by selecting only the required index range\nfrom a collection, and the `filtered` value only indicates how much filtering was done by a\npost filter in the `IndexNode` itself or following `FilterNode` nodes.\nNodes of the `EnumerateCollectionNode` and `TraversalNode` types can also apply\nfilter conditions and can report the number of filtered documents.\n",
+               "type": "integer"
+              },
+              "fullCount": {
+               "description": "The total number of documents that matched the search condition if the query's\nfinal top-level `LIMIT` operation were not present.\nThis attribute may only be returned if the `fullCount` option was set when starting the\nquery and only contains a sensible value if the query contains a `LIMIT` operation on\nthe top level.\n",
+               "type": "integer"
+              },
+              "httpRequests": {
+               "description": "The total number of cluster-internal HTTP requests performed.\n",
+               "type": "integer"
+              },
+              "intermediateCommits": {
+               "description": "The number of intermediate commits performed by the query. This is only non-zero\nfor write queries, and only for queries that reached either the `intermediateCommitSize`\nor `intermediateCommitCount` thresholds. Note: in a cluster, intermediate commits can happen\non each participating DB-Server.\n",
+               "type": "integer"
+              },
+              "nodes": {
+               "description": "When the query is executed with the `profile` option set to at least `2`,\nthen this attribute contains runtime statistics per query execution node.\nFor a human readable output, you can execute\n`db._profileQuery(\u003cquery\u003e, \u003cbind-vars\u003e)` in arangosh.\n",
+               "items": {
+                "properties": {
+                 "calls": {
+                  "description": "The number of calls to this node.\n",
+                  "type": "integer"
+                 },
+                 "id": {
+                  "description": "The execution node ID to correlate the statistics with the `plan` returned in\nthe `extra` attribute.\n",
+                  "type": "integer"
+                 },
+                 "items": {
+                  "description": "The number of items returned by this node. Items are the temporary results\nreturned at this stage.\n",
+                  "type": "integer"
+                 },
+                 "runtime": {
+                  "description": "The execution time of this node in seconds.\n",
+                  "type": "number"
+                 }
+                },
+                "required": [
+                 "id",
+                 "calls",
+                 "items",
+                 "runtime",
+                 "id",
+                 "calls",
+                 "items",
+                 "runtime",
+                 "id",
+                 "calls",
+                 "items",
+                 "runtime"
+                ],
+                "type": "object"
+               },
+               "type": "array"
+              },
+              "peakMemoryUsage": {
+               "description": "The maximum memory usage of the query while it was running. In a cluster,\nthe memory accounting is done per shard, and the memory usage reported is the peak\nmemory usage value from the individual shards.\nNote that to keep things lightweight, the per-query memory usage is tracked on a relatively\nhigh level, not including any memory allocator overhead nor any memory used for temporary\nresults calculations (e.g. memory allocated/deallocated inside AQL expressions and function\ncalls).\n",
+               "type": "integer"
+              },
+              "scannedFull": {
+               "description": "The total number of documents iterated over when scanning a collection\nwithout an index. Documents scanned by subqueries are included in the result, but\noperations triggered by built-in or user-defined AQL functions are not.\n",
+               "type": "integer"
+              },
+              "scannedIndex": {
+               "description": "The total number of documents iterated over when scanning a collection using\nan index. Documents scanned by subqueries are included in the result, but operations\ntriggered by built-in or user-defined AQL functions are not.\n",
+               "type": "integer"
+              },
+              "writesExecuted": {
+               "description": "The total number of data-modification operations successfully executed.\n",
+               "type": "integer"
+              },
+              "writesIgnored": {
+               "description": "The total number of data-modification operations that were unsuccessful,\nbut have been ignored because of the `ignoreErrors` query option.\n",
+               "type": "integer"
+              }
+             },
+             "required": [
+              "writesExecuted",
+              "writesIgnored",
+              "scannedFull",
+              "scannedIndex",
+              "cursorsCreated",
+              "cursorsRearmed",
+              "cacheHits",
+              "cacheMisses",
+              "filtered",
+              "httpRequests",
+              "executionTime",
+              "peakMemoryUsage",
+              "writesExecuted",
+              "writesIgnored",
+              "scannedFull",
+              "scannedIndex",
+              "cursorsCreated",
+              "cursorsRearmed",
+              "cacheHits",
+              "cacheMisses",
+              "filtered",
+              "httpRequests",
+              "executionTime",
+              "peakMemoryUsage",
+              "writesExecuted",
+              "writesIgnored",
+              "scannedFull",
+              "scannedIndex",
+              "cursorsCreated",
+              "cursorsRearmed",
+              "cacheHits",
+              "cacheMisses",
+              "filtered",
+              "httpRequests",
+              "executionTime",
+              "peakMemoryUsage"
+             ],
+             "type": "object"
+            },
+            "warnings": {
+             "description": "A list of query warnings.\n",
+             "items": {
+              "properties": {
+               "code": {
+                "description": "An error code.\n",
+                "type": "integer"
+               },
+               "message": {
+                "description": "A description of the problem.\n",
+                "type": "string"
+               }
+              },
+              "required": [
+               "code",
+               "message",
+               "code",
+               "message",
+               "code",
+               "message"
+              ],
+              "type": "object"
+             },
+             "type": "array"
+            }
+           },
+           "required": [
+            "warnings",
+            "stats",
+            "warnings",
+            "stats",
+            "warnings",
+            "stats"
+           ],
+           "type": "object"
+          },
+          "hasMore": {
+           "description": "A boolean indicator whether there are more results\navailable for the cursor on the server.\n\nNote that even if `hasMore` returns `true`, the next call might still return no\ndocuments. Once `hasMore` is `false`, the cursor is exhausted and the client\ncan stop asking for more results.\n",
+           "type": "boolean"
+          },
+          "id": {
+           "description": "The ID of the cursor for fetching more result batches.\n",
+           "type": "string"
+          },
+          "nextBatchId": {
+           "description": "Only set if the `allowRetry` query option is enabled in v3.11.0.\nFrom v3.11.1 onward, this attribute is always set, except in the last batch.\n\nThe ID of the batch after the current one. The first batch has an ID of `1` and\nthe value is incremented by 1 with every batch. You can remember and use this\nbatch ID should retrieving the next batch fail. Use the\n`POST /_api/cursor/\u003ccursor-id\u003e/\u003cbatch-id\u003e` endpoint to ask for the batch again.\nYou can also request the next batch.\n",
+           "type": "string"
+          },
+          "result": {
+           "description": "An array of result documents for the current batch\n(might be empty if the query has no results).\n",
+           "items": {
+            "type": ""
+           },
+           "type": "array"
+          }
+         },
+         "required": [
+          "error",
+          "code",
+          "hasMore",
+          "cached"
+         ],
+         "type": "object"
+        }
+       }
+      },
+      "description": "The server responds with *HTTP 200* in case of success.\n"
+     },
+     "400": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "properties": {
+          "code": {
+           "description": "The HTTP status code.\n",
+           "type": "integer"
+          },
+          "error": {
+           "description": "A flag to indicate that an error occurred (`false` in this case).\n",
+           "type": "boolean"
+          },
+          "errorMessage": {
+           "description": "A descriptive error message (if `error` is `true`).\n",
+           "type": "string"
+          },
+          "errorNum": {
+           "description": "A server error number (if `error` is `true`).\n",
+           "type": "integer"
+          }
+         },
+         "required": [
+          "error",
+          "code",
+          "errorNum",
+          "errorMessage"
+         ],
+         "type": "object"
+        }
+       }
+      },
+      "description": "If the cursor and the batch identifier are omitted, the server responds with\n*HTTP 400*.\n"
+     },
+     "404": {
+      "description": "If no cursor with the specified identifier can be found, or if the requested\nbatch isn't available, the server responds with *HTTP 404*.\n"
+     },
+     "410": {
+      "description": "The server responds with *HTTP 410* if a server which processes the query\nor is the leader for a shard which is used in the query stops responding, but\nthe connection has not been closed.\n"
+     },
+     "503": {
+      "description": "The server responds with *HTTP 503* if a server which processes the query\nor is the leader for a shard which is used in the query is down, either for\ngoing through a restart, a failure or connectivity issues.\n"
+     }
+    },
+    "summary": "Read a batch from the cursor again",
     "tags": [
      "Queries"
     ]
