@@ -2,7 +2,7 @@
  "info": {
   "description": "ArangoDB REST API Interface",
   "title": "ArangoDB",
-  "version": "3.12.0"
+  "version": "3.11.3"
  },
  "openapi": "3.1.0",
  "paths": {
@@ -1519,14 +1519,14 @@
   },
   "/_admin/database/target-version": {
    "get": {
-    "description": "Returns the database version that this server requires.\nThe version is returned in the `version` attribute of the result.\n",
+    "description": "\u003e **WARNING:**\nThis endpoint is deprecated and should no longer be used. It will be removed from version 3.12.0 onward.\nUse `GET /_api/version` instead.\n\n\nReturns the database version that this server requires.\nThe version is returned in the `version` attribute of the result.\n",
     "operationId": "getDatabaseVersion",
     "responses": {
      "200": {
       "description": "Is returned in all cases.\n"
      }
     },
-    "summary": "Get the required database version",
+    "summary": "Get the required database version (deprecated)",
     "tags": [
      "Administration"
     ]
@@ -4659,7 +4659,7 @@
           "type": "string"
          },
          "shardingStrategy": {
-          "description": "This attribute specifies the name of the sharding strategy to use for\nthe collection. Since ArangoDB 3.4 there are different sharding strategies\nto select from when creating a new collection. The selected `shardingStrategy`\nvalue remains fixed for the collection and cannot be changed afterwards.\nThis is important to make the collection keep its sharding settings and\nalways find documents already distributed to shards using the same\ninitial sharding algorithm.\n\nThe available sharding strategies are:\n- `community-compat`: default sharding used by ArangoDB\n  Community Edition before version 3.4\n- `enterprise-compat`: default sharding used by ArangoDB\n  Enterprise Edition before version 3.4\n- `enterprise-smart-edge-compat`: default sharding used by smart edge\n  collections in ArangoDB Enterprise Edition before version 3.4\n- `hash`: default sharding used for new collections starting from version 3.4\n  (excluding smart edge collections)\n- `enterprise-hash-smart-edge`: default sharding used for new\n  smart edge collections starting from version 3.4\n- `enterprise-hex-smart-vertex`: sharding used for vertex collections of\n  EnterpriseGraphs\n\nIf no sharding strategy is specified, the default is `hash` for\nall normal collections, `enterprise-hash-smart-edge` for all smart edge\ncollections, and `enterprise-hex-smart-vertex` for EnterpriseGraph\nvertex collections (the latter two require the *Enterprise Edition* of ArangoDB).\nManually overriding the sharding strategy does not yet provide a\nbenefit, but it may later in case other sharding strategies are added.\n",
+          "description": "This attribute specifies the name of the sharding strategy to use for\nthe collection. There are different sharding strategies\nto select from when creating a new collection. The selected `shardingStrategy`\nvalue remains fixed for the collection and cannot be changed afterwards.\nThis is important to make the collection keep its sharding settings and\nalways find documents already distributed to shards using the same\ninitial sharding algorithm.\n\nThe available sharding strategies are:\n- `community-compat`: default sharding used by ArangoDB\n  Community Edition before version 3.4\n- `enterprise-compat`: default sharding used by ArangoDB\n  Enterprise Edition before version 3.4\n- `enterprise-smart-edge-compat`: default sharding used by smart edge\n  collections in ArangoDB Enterprise Edition before version 3.4\n- `hash`: default sharding used for new collections starting from version 3.4\n  (excluding smart edge collections)\n- `enterprise-hash-smart-edge`: default sharding used for new\n  smart edge collections starting from version 3.4\n- `enterprise-hex-smart-vertex`: sharding used for vertex collections of\n  EnterpriseGraphs\n\nIf no sharding strategy is specified, the default is `hash` for\nall normal collections, `enterprise-hash-smart-edge` for all smart edge\ncollections, and `enterprise-hex-smart-vertex` for EnterpriseGraph\nvertex collections (the latter two require the *Enterprise Edition* of ArangoDB).\nManually overriding the sharding strategy does not yet provide a\nbenefit, but it may later in case other sharding strategies are added.\n",
           "type": "string"
          },
          "smartGraphAttribute": {
@@ -5885,7 +5885,7 @@
             "type": "number"
            },
            "state": {
-            "description": "The state of the execution. The following values can be returned:\n- `\"none\"`: The Pregel run did not yet start.\n- `\"loading\"`: The graph is loaded from the database into memory before the execution of the algorithm.\n- `\"running\"`: The algorithm is executing normally.\n- `\"storing\"`: The algorithm finished, but the results are still being written\n  back into the collections. Occurs only if the store parameter is set to true.\n- `\"done\"`: The execution is done. In version 3.7.1 and later, this means that\n  storing is also done. In earlier versions, the results may not be written back\n  into the collections yet. This event is announced in the server log (requires\n  at least info log level for the `pregel` log topic).\n- `\"canceled\"`: The execution was permanently canceled, either by the user or by\n  an error.\n- `\"fatal error\"`: The execution has failed and cannot recover.\n- `\"in error\"`: The execution is in an error state. This can be\n  caused by DB-Servers being not reachable or being non responsive. The execution\n  might recover later, or switch to `\"canceled\"` if it was not able to recover\n  successfully.\n- `\"recovering\"` (currently unused): The execution is actively recovering and\n  switches back to `running` if the recovery is successful.\n",
+            "description": "The state of the execution. The following values can be returned:\n- `\"none\"`: The Pregel run has not started yet.\n- `\"loading\"`: The graph is being loaded from the database into memory before\n  executing the algorithm.\n- `\"running\"`: The algorithm is executing normally.\n- `\"storing\"`: The algorithm finished, but the results are still being written\n  back into the collections. Only occurs if the `store` parameter is set to `true`.\n- `\"done\"`: The execution is done. This means that storing is also done.\n  This event is announced in the server log (requires at least the `info`\n  log level for the `pregel` log topic).\n- `\"canceled\"`: The execution was permanently canceled, either by the user or by\n  an error.\n- `\"in error\"`: The execution is in an error state. This can be caused by\n  primary DB-Servers being unreachable or unresponsive. The execution\n  might recover later, or switch to `\"canceled\"` if it is not able to recover\n  successfully.\n- `\"recovering\"`: The execution is actively recovering and\n  switches back to `running` if the recovery is successful.\n- `\"fatal error\"`: The execution has failed and cannot recover.\n",
             "type": "string"
            },
            "storageTime": {
@@ -6147,7 +6147,7 @@
             "type": "number"
            },
            "state": {
-            "description": "The state of the execution. The following values can be returned:\n- `\"none\"`: The Pregel run did not yet start.\n- `\"loading\"`: The graph is loaded from the database into memory before the execution of the algorithm.\n- `\"running\"`: The algorithm is executing normally.\n- `\"storing\"`: The algorithm finished, but the results are still being written\n  back into the collections. Occurs only if the store parameter is set to true.\n- `\"done\"`: The execution is done. In version 3.7.1 and later, this means that\n  storing is also done. In earlier versions, the results may not be written back\n  into the collections yet. This event is announced in the server log (requires\n  at least info log level for the `pregel` log topic).\n- `\"canceled\"`: The execution was permanently canceled, either by the user or by\n  an error.\n- `\"fatal error\"`: The execution has failed and cannot recover.\n- `\"in error\"`: The execution is in an error state. This can be\n  caused by DB-Servers being not reachable or being non responsive. The execution\n  might recover later, or switch to `\"canceled\"` if it was not able to recover\n  successfully.\n- `\"recovering\"` (currently unused): The execution is actively recovering and\n  switches back to `running` if the recovery is successful.\n",
+            "description": "The state of the execution. The following values can be returned:\n- `\"none\"`: The Pregel run has not started yet.\n- `\"loading\"`: The graph is being loaded from the database into memory before\n  executing the algorithm.\n- `\"running\"`: The algorithm is executing normally.\n- `\"storing\"`: The algorithm finished, but the results are still being written\n  back into the collections. Only occurs if the `store` parameter is set to `true`.\n- `\"done\"`: The execution is done. This means that storing is also done.\n  This event is announced in the server log (requires at least the `info`\n  log level for the `pregel` log topic).\n- `\"canceled\"`: The execution was permanently canceled, either by the user or by\n  an error.\n- `\"in error\"`: The execution is in an error state. This can be caused by\n  primary DB-Servers being unreachable or unresponsive. The execution\n  might recover later, or switch to `\"canceled\"` if it is not able to recover\n  successfully.\n- `\"recovering\"`: The execution is actively recovering and\n  switches back to `running` if the recovery is successful.\n- `\"fatal error\"`: The execution has failed and cannot recover.\n",
             "type": "string"
            },
            "storageTime": {
@@ -6371,7 +6371,7 @@
            "type": "number"
           },
           "state": {
-           "description": "The state of the execution. The following values can be returned:\n- `\"none\"`: The Pregel run did not yet start.\n- `\"loading\"`: The graph is loaded from the database into memory before the execution of the algorithm.\n- `\"running\"`: The algorithm is executing normally.\n- `\"storing\"`: The algorithm finished, but the results are still being written\n  back into the collections. Occurs only if the store parameter is set to true.\n- `\"done\"`: The execution is done. In version 3.7.1 and later, this means that\n  storing is also done. In earlier versions, the results may not be written back\n  into the collections yet. This event is announced in the server log (requires\n  at least info log level for the `pregel` log topic).\n- `\"canceled\"`: The execution was permanently canceled, either by the user or by\n  an error.\n- `\"fatal error\"`: The execution has failed and cannot recover.\n- `\"in error\"`: The execution is in an error state. This can be\n  caused by DB-Servers being not reachable or being non responsive. The execution\n  might recover later, or switch to `\"canceled\"` if it was not able to recover\n  successfully.\n- `\"recovering\"` (currently unused): The execution is actively recovering and\n  switches back to `running` if the recovery is successful.\n",
+           "description": "The state of the execution. The following values can be returned:\n- `\"none\"`: The Pregel run has not started yet.\n- `\"loading\"`: The graph is being loaded from the database into memory before\n  executing the algorithm.\n- `\"running\"`: The algorithm is executing normally.\n- `\"storing\"`: The algorithm finished, but the results are still being written\n  back into the collections. Only occurs if the `store` parameter is set to `true`.\n- `\"done\"`: The execution is done. This means that storing is also done.\n  This event is announced in the server log (requires at least the `info`\n  log level for the `pregel` log topic).\n- `\"canceled\"`: The execution was permanently canceled, either by the user or by\n  an error.\n- `\"in error\"`: The execution is in an error state. This can be caused by\n  primary DB-Servers being unreachable or unresponsive. The execution\n  might recover later, or switch to `\"canceled\"` if it is not able to recover\n  successfully.\n- `\"recovering\"`: The execution is actively recovering and\n  switches back to `running` if the recovery is successful.\n- `\"fatal error\"`: The execution has failed and cannot recover.\n",
            "type": "string"
           },
           "storageTime": {
@@ -6596,7 +6596,7 @@
            "type": "number"
           },
           "state": {
-           "description": "The state of the execution. The following values can be returned:\n- `\"none\"`: The Pregel run did not yet start.\n- `\"loading\"`: The graph is loaded from the database into memory before the execution of the algorithm.\n- `\"running\"`: The algorithm is executing normally.\n- `\"storing\"`: The algorithm finished, but the results are still being written\n  back into the collections. Occurs only if the store parameter is set to true.\n- `\"done\"`: The execution is done. In version 3.7.1 and later, this means that\n  storing is also done. In earlier versions, the results may not be written back\n  into the collections yet. This event is announced in the server log (requires\n  at least info log level for the `pregel` log topic).\n- `\"canceled\"`: The execution was permanently canceled, either by the user or by\n  an error.\n- `\"fatal error\"`: The execution has failed and cannot recover.\n- `\"in error\"`: The execution is in an error state. This can be\n  caused by DB-Servers being not reachable or being non responsive. The execution\n  might recover later, or switch to `\"canceled\"` if it was not able to recover\n  successfully.\n- `\"recovering\"` (currently unused): The execution is actively recovering and\n  switches back to `running` if the recovery is successful.\n",
+           "description": "The state of the execution. The following values can be returned:\n- `\"none\"`: The Pregel run has not started yet.\n- `\"loading\"`: The graph is being loaded from the database into memory before\n  executing the algorithm.\n- `\"running\"`: The algorithm is executing normally.\n- `\"storing\"`: The algorithm finished, but the results are still being written\n  back into the collections. Only occurs if the `store` parameter is set to `true`.\n- `\"done\"`: The execution is done. This means that storing is also done.\n  This event is announced in the server log (requires at least the `info`\n  log level for the `pregel` log topic).\n- `\"canceled\"`: The execution was permanently canceled, either by the user or by\n  an error.\n- `\"in error\"`: The execution is in an error state. This can be caused by\n  primary DB-Servers being unreachable or unresponsive. The execution\n  might recover later, or switch to `\"canceled\"` if it is not able to recover\n  successfully.\n- `\"recovering\"`: The execution is actively recovering and\n  switches back to `running` if the recovery is successful.\n- `\"fatal error\"`: The execution has failed and cannot recover.\n",
            "type": "string"
           },
           "storageTime": {
@@ -12586,7 +12586,7 @@
         }
        }
       },
-      "description": "Returned in any of the following cases\n* no graph with this name could be found.\n* the edge collection is not part of the graph.\n* the vertex collection referenced in the `_from` or `_to` attribute is not part of the graph.\n* the vertex collection is part of the graph, but does not exist.\n* `_from` or `_to` vertex does not exist.\n"
+      "description": "Returned in any of the following cases\n- no graph with this name could be found.\n- the edge collection is not part of the graph.\n- the vertex collection referenced in the `_from` or `_to` attribute is not part of the graph.\n- the vertex collection is part of the graph, but does not exist.\n- `_from` or `_to` vertex does not exist.\n"
      }
     },
     "summary": "Create an edge",
@@ -13287,7 +13287,7 @@
         }
        }
       },
-      "description": "Returned in the following cases\n* No graph with this name could be found.\n* This collection is not part of the graph.\n* The edge to remove does not exist.\n"
+      "description": "Returned in the following cases\n- No graph with this name could be found.\n- This collection is not part of the graph.\n- The edge to remove does not exist.\n"
      },
      "412": {
       "content": {
@@ -13547,7 +13547,7 @@
         }
        }
       },
-      "description": "Returned in the following cases\n* No graph with this name could be found.\n* This collection is not part of the graph.\n* The edge does not exist.\n"
+      "description": "Returned in the following cases\n- No graph with this name could be found.\n- This collection is not part of the graph.\n- The edge does not exist.\n"
      },
      "412": {
       "content": {
@@ -13999,7 +13999,7 @@
         }
        }
       },
-      "description": "Returned in the following cases\n* No graph with this name could be found.\n* This collection is not part of the graph.\n* The edge to update does not exist.\n* either `_from` or `_to` vertex does not exist (if updated).\n"
+      "description": "Returned in the following cases\n- No graph with this name could be found.\n- This collection is not part of the graph.\n- The edge to update does not exist.\n- either `_from` or `_to` vertex does not exist (if updated).\n"
      },
      "412": {
       "content": {
@@ -14456,7 +14456,7 @@
         }
        }
       },
-      "description": "Returned in the following cases\n* No graph with this name could be found.\n* This collection is not part of the graph.\n* The edge to replace does not exist.\n* either `_from` or `_to` vertex does not exist.\n"
+      "description": "Returned in the following cases\n- No graph with this name could be found.\n- This collection is not part of the graph.\n- The edge to replace does not exist.\n- either `_from` or `_to` vertex does not exist.\n"
      },
      "412": {
       "content": {
@@ -15873,7 +15873,7 @@
         }
        }
       },
-      "description": "Returned in the following cases\n* No graph with this name could be found.\n* This collection is not part of the graph.\n* The vertex to remove does not exist.\n"
+      "description": "Returned in the following cases\n- No graph with this name could be found.\n- This collection is not part of the graph.\n- The vertex to remove does not exist.\n"
      },
      "412": {
       "content": {
@@ -16123,7 +16123,7 @@
         }
        }
       },
-      "description": "Returned in the following cases\n* No graph with this name could be found.\n* This collection is not part of the graph.\n* The vertex does not exist.\n"
+      "description": "Returned in the following cases\n- No graph with this name could be found.\n- This collection is not part of the graph.\n- The vertex does not exist.\n"
      },
      "412": {
       "content": {
@@ -16515,7 +16515,7 @@
         }
        }
       },
-      "description": "Returned in the following cases\n* No graph with this name could be found.\n* This collection is not part of the graph.\n* The vertex to update does not exist.\n"
+      "description": "Returned in the following cases\n- No graph with this name could be found.\n- This collection is not part of the graph.\n- The vertex to update does not exist.\n"
      },
      "412": {
       "content": {
@@ -16907,7 +16907,7 @@
         }
        }
       },
-      "description": "Returned in the following cases\n* No graph with this name could be found.\n* This collection is not part of the graph.\n* The vertex to replace does not exist.\n"
+      "description": "Returned in the following cases\n- No graph with this name could be found.\n- This collection is not part of the graph.\n- The vertex to replace does not exist.\n"
      },
      "412": {
       "content": {
@@ -18981,7 +18981,7 @@
   },
   "/_api/replication/dump": {
    "get": {
-    "description": "Returns the data from a collection for the requested range.\n\n\nThe `chunkSize` query parameter can be used to control the size of the result.\nIt must be specified in bytes. The `chunkSize` value will only be honored\napproximately. Otherwise a too low `chunkSize` value could cause the server\nto not be able to put just one entry into the result and return it.\nTherefore, the `chunkSize` value will only be consulted after an entry has\nbeen written into the result. If the result size is then greater than\n`chunkSize`, the server will respond with as many entries as there are\nin the response already. If the result size is still less than `chunkSize`,\nthe server will try to return more data if there's more data left to return.\n\nIf `chunkSize` is not specified, some server-side default value will be used.\n\nThe `Content-Type` of the result is `application/x-arango-dump`. This is an\neasy-to-process format, with all entries going onto separate lines in the\nresponse body.\n\nEach line itself is a JSON object, with at least the following attributes:\n\n- `tick`: the operation's tick attribute\n\n- `key`: the key of the document/edge or the key used in the deletion operation\n\n- `rev`: the revision id of the document/edge or the deletion operation\n\n- `data`: the actual document/edge data for types 2300 and 2301. The full\n  document/edge data will be returned even for updates.\n\n- `type`: the type of entry. Possible values for `type` are:\n\n  - 2300: document insertion/update\n\n  - 2301: edge insertion/update\n\n  - 2302: document/edge deletion\n\n**Note**: there will be no distinction between inserts and updates when calling this method.\n",
+    "description": "Returns the data from a collection for the requested range.\n\nThe `chunkSize` query parameter can be used to control the size of the result.\nIt must be specified in bytes. The `chunkSize` value will only be honored\napproximately. Otherwise a too low `chunkSize` value could cause the server\nto not be able to put just one entry into the result and return it.\nTherefore, the `chunkSize` value will only be consulted after an entry has\nbeen written into the result. If the result size is then greater than\n`chunkSize`, the server will respond with as many entries as there are\nin the response already. If the result size is still less than `chunkSize`,\nthe server will try to return more data if there's more data left to return.\n\nIf `chunkSize` is not specified, some server-side default value will be used.\n\nThe `Content-Type` of the result is `application/x-arango-dump`. This is an\neasy-to-process format, with all entries going onto separate lines in the\nresponse body.\n\nEach line itself is a JSON object, with at least the following attributes:\n\n- `tick`: the operation's tick attribute\n\n- `key`: the key of the document/edge or the key used in the deletion operation\n\n- `rev`: the revision id of the document/edge or the deletion operation\n\n- `data`: the actual document/edge data for types 2300 and 2301. The full\n  document/edge data will be returned even for updates.\n\n- `type`: the type of entry. Possible values for `type` are:\n\n  - 2300: document insertion/update\n\n  - 2301: edge insertion/update\n\n  - 2302: document/edge deletion\n\n**Note**: there will be no distinction between inserts and updates when calling this method.\n",
     "operationId": "getReplicationDump",
     "parameters": [
      {
@@ -20603,7 +20603,7 @@
       "description": "Returned if you have *No access* server access level.\n"
      }
     },
-    "summary": "List a user's accessible databases",
+    "summary": "List a user\u0026rsquo;s accessible databases",
     "tags": [
      "Users"
     ]
@@ -20641,7 +20641,7 @@
       "description": "If the JSON representation is malformed or mandatory data is missing\nfrom the request.\n"
      }
     },
-    "summary": "Clear a user's database access level",
+    "summary": "Clear a user\u0026rsquo;s database access level",
     "tags": [
      "Users"
     ]
@@ -20683,7 +20683,7 @@
       "description": "Returned if you have *No access* server access level.\n"
      }
     },
-    "summary": "Get a user's database access level",
+    "summary": "Get a user\u0026rsquo;s database access level",
     "tags": [
      "Users"
     ]
@@ -20743,7 +20743,7 @@
       "description": "Returned if you have *No access* server access level.\n"
      }
     },
-    "summary": "Set a user's database access level",
+    "summary": "Set a user\u0026rsquo;s database access level",
     "tags": [
      "Users"
     ]
@@ -20790,7 +20790,7 @@
       "description": "If there was an error\n"
      }
     },
-    "summary": "Clear a user's collection access level",
+    "summary": "Clear a user\u0026rsquo;s collection access level",
     "tags": [
      "Users"
     ]
@@ -20841,7 +20841,7 @@
       "description": "Returned if you have *No access* server access level.\n"
      }
     },
-    "summary": "Get a user's collection access level",
+    "summary": "Get a user\u0026rsquo;s collection access level",
     "tags": [
      "Users"
     ]
@@ -20910,7 +20910,7 @@
       "description": "Returned if you have *No access* server access level.\n"
      }
     },
-    "summary": "Set a user's collection access level",
+    "summary": "Set a user\u0026rsquo;s collection access level",
     "tags": [
      "Users"
     ]
